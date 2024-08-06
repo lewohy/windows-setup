@@ -1,5 +1,4 @@
-# Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-# Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+# Invoke-RestMethod -Uri https://raw.githubusercontent.com/lewohy/windows-setup/master/setup.ps1 | powershell
 
 $ErrorActionPreference = "Stop"
 
@@ -10,13 +9,19 @@ function RunTask {
     )
     
     Write-Host "############################# $taskName"
-    $task.Invoke()
+    powershell -Command {
+        Write-Host "############################# $taskName"
+        $task.Invoke()
+    }
 }
 
+RunTask "Set Execution Policy" {
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+}
 
 RunTask "ChangeUAC" {
-    Start-Process powershell -Verb RunAs -ArgumentList "Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorAdmin -Value 0"
-    Start-Process powershell -Verb RunAs -ArgumentList "Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorUser -Value 0"
+    Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorAdmin -Value 0 -Type DWord
+    Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorUser -Value 0 -Type DWord
 }
 
 RunTask "ChangePowerCfg" {
@@ -48,13 +53,6 @@ RunTask "SetupExplorer" {
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Start" -Name VisiblePlaces -Value ([byte[]](0x00)) -Type Binary
     # Multi-Monitor에서 태스크바 그룹화 활성화
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name MMTaskbarGlomLevel -Value 0 -Type DWord
-
-
-
-
-
-
-
     # 숨김 파일 표시 활성화
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Hidden -Value 1 -Type DWord
     # 확장자 숨김 비활성화
@@ -72,11 +70,6 @@ RunTask "SetupExplorer" {
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name ShowCopilotButton -Value 0 -Type DWord
     # 검색 버튼 비활성화
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name SearchboxTaskbarMode -Value 0 -Type DWord
-
-    # Hide TaskBar Thumbnails
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name IconsOnly -Value 0 -Type DWord
-    # Hide Desktop Icons
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name HideIcons -Value 0 -Type DWord
 }
 
 function SetupContextMenu {
