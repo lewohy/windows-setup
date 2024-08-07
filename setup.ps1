@@ -1,4 +1,4 @@
-# Invoke-RestMethod -Uri https://raw.githubusercontent.com/lewohy/windows-setup/master/setup.ps1 | powershell
+# Invoke-RestMethod -Uri https://raw.githubusercontent.com/lewohy/windows-setup/master/setup.ps1 | Invoke-Expression
 
 $ErrorActionPreference = "Stop"
 
