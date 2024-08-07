@@ -7,15 +7,13 @@ function RunTask {
         [string]$taskName,
         [scriptblock]$task
     )
+    $scriptBlockString = $scriptBlock.ToString()
     
     Write-Host "############################# $taskName"
-    powershell -Command {
-        Write-Host "############################# $taskName"
-        $task.Invoke()
-    }
+    Start-Process powershell -ArgumentList "-NoProfile -Command `$scriptBlock = $scriptBlockString; Invoke-Command -ScriptBlock `$scriptBlock" 
 }
 
-RunTask "SetExecutionPolicy" {
+RunTask "SetExecutionPolicy" -task {
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 }
 
