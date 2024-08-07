@@ -10,3 +10,7 @@
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+Apps/*
+!Apps/sandbox.wsb
+!Apps/sandbox.ps1

@@ -15,7 +15,7 @@ function RunTask {
     }
 }
 
-RunTask "Set Execution Policy" {
+RunTask "SetExecutionPolicy" {
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 }
 
