@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<Configuration>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\Users\lewohy\Obsidian\lewohy\Home\setup\.workspace\windows-setup</HostFolder>
+      <SandboxFolder>C:\Users\WDAGUtilityAccount\Desktop\windows-setup</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>powershell -ExecutionPolicy unrestricted -command "start powershell {-NoExit -File C:\Users\WDAGUtilityAccount\Desktop\windows-setup\sandbox\onboot.ps1}"</Command>
+  </LogonCommand>
+</Configuration>
