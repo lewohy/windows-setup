@@ -274,7 +274,7 @@ RunTask 'Setup taskbar' {
 RunTask 'Setup quick access' {
     # Clear quick access
     ($QuickAccess.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}").Items()) | ForEach-Object {
-        $_.InvokeVerb("unpinfromhome")
+        $_.InvokeVerb('unpinfromhome')
     }
 
     $QuickAccess.Namespace("""$home""").Self.InvokeVerb('pintohome')
