@@ -219,13 +219,6 @@ RunTask 'Set context menu' {
     # TODO: Add context menu
 }
 
-RunTask 'KMS Auto activation' {
-    Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /ipk W269N-WFGWX-YVC9B-4J6C9-T83GX'
-    Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /skms kms.digiboy.ir'
-    Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /ato'
-}
-    
-
 RunTask 'Set XDG_CONFIG_CONFIG' {
     [Environment]::SetEnvironmentVariable('XDG_CONFIG_HOME', """$home\.config""", 'User')
 }
@@ -250,8 +243,6 @@ RunTask 'Reset startup apps' {
         if (Test-Path $RegPath) {
             # 레지스트리 키 안의 모든 값을 가져옵니다.
             $values = Get-ItemProperty -Path $RegPath | Select-Object -Property *
-        
-            Write-Host $values
 
             # 값을 하나씩 삭제합니다.
             foreach ($value in $values.PSObject.Properties.Name) {
@@ -264,26 +255,46 @@ RunTask 'Reset startup apps' {
     
     $RegPath = $RegPaths[0]
     
-    New-ItemProperty -Path """$RegPath""" -Name 'Discord' -Value '"""C:\Users\lewohy\AppData\Local\Discord\Update.exe""" --processStart Discord.exe' -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'KakaoTalk' -Value '"""C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe""" -bystartup' -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'JetBrains Toolbox' -Value '"""C:\Users\lewohy\AppData\Local\JetBrains\Toolbox\bin\jetbrains-toolbox.exe""" --minimize' -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'PasteIntoFile' -Value '"""C:\Program Files (x86)\PasteIntoFile\PasteIntoFile.exe""" tray' -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'Resilio Sync' -Value '"""C:\Users\lewohy\AppData\Roaming\Resilio Sync\Resilio Sync.exe"""  /MINIMIZED' -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'OneDrive' -Value '"""C:\Program Files\Microsoft OneDrive\OneDrive.exe""" /background' -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'GoogleDriveFS' -Value '"""C:\Program Files\Google\Drive File Stream\94.0.1.0\GoogleDriveFS.exe""" --startup_mode' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'Discord' -Value """$home\AppData\Local\Discord\Update.exe""" --processStart Discord.exe -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'KakaoTalk' -Value """C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe""" -bystartup -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'JetBrains Toolbox' -Value """$home\AppData\Local\JetBrains\Toolbox\bin\jetbrains-toolbox.exe""" --minimize -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'PasteIntoFile' -Value """C:\Program Files (x86)\PasteIntoFile\PasteIntoFile.exe""" tray -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'Resilio Sync' -Value """$home\AppData\Roaming\Resilio Sync\Resilio Sync.exe"""  /MINIMIZED -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'OneDrive' -Value """C:\Program Files\Microsoft OneDrive\OneDrive.exe""" /background -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'GoogleDriveFS' -Value """C:\Program Files\Google\Drive File Stream\94.0.1.0\GoogleDriveFS.exe""" --startup_mode -PropertyType String
 }
 
 RunTask 'Setup taskbar' {
     Write-Host 'Run gpedit.msc'
     Write-Host 'User Configuration > Administrative Templates > Start Menu and Taskbar'
     Write-Host 'Enable ""Start Layout"" and edit'
-    Write-Host 'C:\Users\lewohy\.config\windows-startlayout\Layout.xml'
+    Write-Host """$home\.config\windows-startlayout\Layout.xml"""
+}
+
+RunTask 'Setup quick access' {
+    # Clear quick access
+    ($QuickAccess.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}").Items()) | ForEach-Object {
+        $_.InvokeVerb("unpinfromhome")
+    }
+
+    $QuickAccess.Namespace("""$home""").Self.InvokeVerb('pintohome')
+    $QuickAccess.Namespace("""$home\Desktop""").Self.InvokeVerb('pintohome')
+    $QuickAccess.Namespace("""$home\Downloads""").Self.InvokeVerb('pintohome')
+    $QuickAccess.Namespace("""$home\Documents""").Self.InvokeVerb('pintohome')
+    $QuickAccess.Namespace("""$home\Pictures""").Self.InvokeVerb('pintohome')
+    $QuickAccess.Namespace("""$home\Videos""").Self.InvokeVerb('pintohome')
+    $QuickAccess.Namespace("""$home\Obsidian\lewohy\Home""").Self.InvokeVerb('pintohome')
+}
+
+RunTask 'KMS Auto activation' {
+    Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /ipk W269N-WFGWX-YVC9B-4J6C9-T83GX'
+    Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /skms kms.digiboy.ir'
+    Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /ato'
 }
 
 # go install github.com/ewen-lbh/hyprls/cmd/hyprls@latest
 #
 # TODO: 우측 하단 아이콘
-# TODO: 퀵 액세스 설정
 # TODO: gh 설정
 # TODO: 기본앱 설정
 # TODO: service 설정
