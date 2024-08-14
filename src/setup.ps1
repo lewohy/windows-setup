@@ -112,8 +112,9 @@ RunTask 'Setup explorer' {
     # Task View 버튼 비활성화
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name ShowTaskViewButton -Value 0 -Type DWord
     # Widget Button 숨기기
+    # FIXME: 
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name TaskbarDa -Value 0 -Type DWord
-    # Start Layout에서 표시할 항목 설정
+    # Start Layout 하단에서 '표 시할 항목 설정
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Start' -Name VisiblePlaces -Value ([byte[]](0x00)) -Type Binary
     # Multi-Monitor에서 태스크바 그룹화 활성화
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name MMTaskbarGlomLevel -Value 0 -Type DWord
@@ -133,6 +134,8 @@ RunTask 'Setup explorer' {
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name ShowCopilotButton -Value 0 -Type DWord
     # 검색 버튼 비활성화
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' -Name SearchboxTaskbarMode -Value 0 -Type DWord
+    # 상단 스냅바 비활성화
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name EnableSnapBar -Value 0 -Type DWord
     
     # Explorer 재시작
     Stop-Process -Name explorer -Force
@@ -168,6 +171,7 @@ RunTask 'Install winget packages' {
 } -NoWait
 
 RunTask 'Install scoop' {
+    # FIXME: admin권한으로 실행하면 안됨
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 }
 
@@ -185,8 +189,8 @@ RunTask 'Config Keyboard' {
 RunTask 'Set language and format' {
     Add-WindowsCapability -Online -Name 'Language.Basic~~~ko-KR'
     Set-WinUILanguageOverride -Language 'en-US'
-    Set-WinUserLanguageList -LanguageList "ko-KR" -Force
-    Set-WinSystemLocale -SystemLocale "ko-KR"
+    Set-WinUserLanguageList -LanguageList 'ko-KR' -Force
+    Set-WinSystemLocale -SystemLocale 'ko-KR'
 
     Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name sLongDate -Value 'yyyy-MM-dd' -Type String
     Set-ItemProperty -Path 'HKCU:\Control Panel\International' -Name sShortDate -Value 'yyyy-MM-dd' -Type String
@@ -208,11 +212,10 @@ RunTask 'Set clipboard' {
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Clipboard' -Name CloudClipboardAutomaticUpload -Value 1 -Type DWord
 }
 
-RunTask 'Pin taskbar item' {
-    # TODO: Add taskbar item
-}
-
 RunTask 'Set context menu' {
+    # set old context menu
+    New-Item -Path 'HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32' -Value '' -Force
+
     # TODO: Add context menu
 }
 
@@ -221,3 +224,74 @@ RunTask 'KMS Auto activation' {
     Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /skms kms.digiboy.ir'
     Start-Process powershell -Verb RunAs -ArgumentList 'slmgr /ato'
 }
+    
+
+RunTask 'Set XDG_CONFIG_CONFIG' {
+    [Environment]::SetEnvironmentVariable('XDG_CONFIG_HOME', """$home\.config""", 'User')
+}
+
+RunTask 'Enable sandbox feature' {
+    # TODO: 테스트 필요
+    Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online
+}
+
+RunTask 'Reset startup apps' {
+    $RegPaths = @(
+        'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run',
+        'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
+        'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run',
+        'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
+        'HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32',
+        'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'
+        
+    )
+    
+    foreach ($RegPath in $RegPaths) {
+        if (Test-Path $RegPath) {
+            # 레지스트리 키 안의 모든 값을 가져옵니다.
+            $values = Get-ItemProperty -Path $RegPath | Select-Object -Property *
+        
+            Write-Host $values
+
+            # 값을 하나씩 삭제합니다.
+            foreach ($value in $values.PSObject.Properties.Name) {
+                if ($value -ne 'PSPath' -and $value -ne 'PSParentPath' -and $value -ne 'PSChildName' -and $value -ne 'PSDrive' -and $value -ne 'PSProvider') {
+                    Remove-ItemProperty -Path $RegPath -Name $value
+                }
+            }
+        }
+    }
+    
+    $RegPath = $RegPaths[0]
+    
+    New-ItemProperty -Path """$RegPath""" -Name 'Discord' -Value '"""C:\Users\lewohy\AppData\Local\Discord\Update.exe""" --processStart Discord.exe' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'KakaoTalk' -Value '"""C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe""" -bystartup' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'JetBrains Toolbox' -Value '"""C:\Users\lewohy\AppData\Local\JetBrains\Toolbox\bin\jetbrains-toolbox.exe""" --minimize' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'PasteIntoFile' -Value '"""C:\Program Files (x86)\PasteIntoFile\PasteIntoFile.exe""" tray' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'Resilio Sync' -Value '"""C:\Users\lewohy\AppData\Roaming\Resilio Sync\Resilio Sync.exe"""  /MINIMIZED' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'OneDrive' -Value '"""C:\Program Files\Microsoft OneDrive\OneDrive.exe""" /background' -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'GoogleDriveFS' -Value '"""C:\Program Files\Google\Drive File Stream\94.0.1.0\GoogleDriveFS.exe""" --startup_mode' -PropertyType String
+}
+
+RunTask 'Setup taskbar' {
+    Write-Host 'Run gpedit.msc'
+    Write-Host 'User Configuration > Administrative Templates > Start Menu and Taskbar'
+    Write-Host 'Enable ""Start Layout"" and edit'
+    Write-Host 'C:\Users\lewohy\.config\windows-startlayout\Layout.xml'
+}
+
+# go install github.com/ewen-lbh/hyprls/cmd/hyprls@latest
+#
+# TODO: 우측 하단 아이콘
+# TODO: 퀵 액세스 설정
+# TODO: gh 설정
+# TODO: 기본앱 설정
+# TODO: service 설정
+# TODO: defender
+# TODO: 고정키 해제
+#
+# TODO: utf-8 설정
+#
+# TODO: winget Windows Software Development Kit - windows 10.0.22621.2428 설치오류
+# TODO: winget MySQL Shell 설치오류
+# TODO: winget parsec 설치오류

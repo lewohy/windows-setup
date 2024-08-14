@@ -9,7 +9,8 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${workspaceFolder}/sandbox/sandbox.wsb",
-            "preLaunchTask": "sandbox: configuration"
+            "preLaunchTask": "sandbox: configuration",
+            
         }
     ]
 }

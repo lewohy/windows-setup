@@ -20,13 +20,18 @@
         {
             "label": "test",
             "type": "shell",
-            "command": "&",
+            "command": "powershell",
             "args": [
-                "./src/test.ps1",
+                "-Verb",
+                "Runas",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "./src/setup.ps1",
             ],
             "group": {
                 "kind": "test",
-                "isDefault": true
+                "isDefault": false
             }
         }
     ]
