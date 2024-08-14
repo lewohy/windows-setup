@@ -228,7 +228,7 @@ RunTask 'Enable sandbox feature' {
     Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online
 }
 
-RunTask 'Reset startup apps' {
+RunTask 'Setup startup apps' {
     $RegPaths = @(
         'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run',
         'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run',
@@ -239,12 +239,11 @@ RunTask 'Reset startup apps' {
         
     )
     
+    # Remove all values
     foreach ($RegPath in $RegPaths) {
         if (Test-Path $RegPath) {
-            # 레지스트리 키 안의 모든 값을 가져옵니다.
             $values = Get-ItemProperty -Path $RegPath | Select-Object -Property *
 
-            # 값을 하나씩 삭제합니다.
             foreach ($value in $values.PSObject.Properties.Name) {
                 if ($value -ne 'PSPath' -and $value -ne 'PSParentPath' -and $value -ne 'PSChildName' -and $value -ne 'PSDrive' -and $value -ne 'PSProvider') {
                     Remove-ItemProperty -Path $RegPath -Name $value
@@ -254,14 +253,14 @@ RunTask 'Reset startup apps' {
     }
     
     $RegPath = $RegPaths[0]
-    
-    New-ItemProperty -Path """$RegPath""" -Name 'Discord' -Value """$home\AppData\Local\Discord\Update.exe""" --processStart Discord.exe -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'KakaoTalk' -Value """C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe""" -bystartup -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'JetBrains Toolbox' -Value """$home\AppData\Local\JetBrains\Toolbox\bin\jetbrains-toolbox.exe""" --minimize -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'PasteIntoFile' -Value """C:\Program Files (x86)\PasteIntoFile\PasteIntoFile.exe""" tray -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'Resilio Sync' -Value """$home\AppData\Roaming\Resilio Sync\Resilio Sync.exe"""  /MINIMIZED -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'OneDrive' -Value """C:\Program Files\Microsoft OneDrive\OneDrive.exe""" /background -PropertyType String
-    New-ItemProperty -Path """$RegPath""" -Name 'GoogleDriveFS' -Value """C:\Program Files\Google\Drive File Stream\94.0.1.0\GoogleDriveFS.exe""" --startup_mode -PropertyType String
+
+    New-ItemProperty -Path """$RegPath""" -Name 'Discord' -Value """""""""""$home\AppData\Local\Discord\Update.exe"""""""" --processStart Discord.exe""" -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'KakaoTalk' -Value """""""""""C:\Program Files (x86)\Kakao\KakaoTalk\KakaoTalk.exe"""""""""" -bystartup""" -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'JetBrains Toolbox' -Value """""""""""$home\AppData\Local\JetBrains\Toolbox\bin\jetbrains-toolbox.exe"""""""""" --minimize""" -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'PasteIntoFile' -Value """""""""""C:\Program Files (x86)\PasteIntoFile\PasteIntoFile.exe"""""""""" tray""" -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'Resilio Sync' -Value """""""""""$home\AppData\Roaming\Resilio Sync\Resilio Sync.exe"""""""""" /MINIMIZED""" -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'OneDrive' -Value """""""""""C:\Program Files\Microsoft OneDrive\OneDrive.exe"""""""""" /background""" -PropertyType String
+    New-ItemProperty -Path """$RegPath""" -Name 'GoogleDriveFS' -Value """""""""""C:\Program Files\Google\Drive File Stream\94.0.1.0\GoogleDriveFS.exe"""""""""" --startup_mode""" -PropertyType String
 }
 
 RunTask 'Setup taskbar' {
@@ -273,7 +272,8 @@ RunTask 'Setup taskbar' {
 
 RunTask 'Setup quick access' {
     # Clear quick access
-    ($QuickAccess.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}").Items()) | ForEach-Object {
+    $QuickAccess = New-Object -ComObject shell.application
+    ($QuickAccess.Namespace('shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}').Items()) | ForEach-Object {
         $_.InvokeVerb('unpinfromhome')
     }
 
